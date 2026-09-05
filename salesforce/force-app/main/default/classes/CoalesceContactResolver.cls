@@ -167,11 +167,51 @@ public with sharing class CoalesceContactResolver {
      * remains unimplemented. At this scale the difference does not bite; at a million contacts the
      * SOQL row limit alone would stop this long before the CPU limit did.
      */
+    /**
+     * Accepts either a Contact id or a Person Account id, because in an org with person accounts
+     * enabled a person is both, and navigating to the Contact redirects to the Account. A component
+     * restricted to Contact record pages is therefore unreachable through normal navigation.
+     *
+     * <p>{@code PersonContactId} only exists on Account when the person-account feature is on, so it
+     * is read through dynamic SOQL and guarded by a describe check. Referencing it statically would
+     * make this class fail to compile in any org without the feature -- a portability cost paid for
+     * nothing, since the field is needed only on the path where person accounts are in play.
+     */
+    private static Id resolveToContactId(Id recordId) {
+        SObjectType kind = recordId.getSobjectType();
+        if (kind == Contact.SObjectType) {
+            return recordId;
+        }
+        if (kind != Account.SObjectType) {
+            throw new AuraHandledException('This component works on contacts and person accounts.');
+        }
+        if (!Schema.SObjectType.Account.fields.getMap().containsKey('PersonContactId')) {
+            throw new AuraHandledException('Person accounts are not enabled in this org.');
+        }
+
+        List<Account> rows = Database.queryWithBinds(
+            'SELECT PersonContactId FROM Account WHERE Id = :recordId',
+            new Map<String, Object>{ 'recordId' => recordId },
+            AccessLevel.USER_MODE
+        );
+        if (rows.isEmpty()) {
+            throw new AuraHandledException('That record is not available.');
+        }
+        Id personContactId = (Id) rows[0].get('PersonContactId');
+        if (personContactId == null) {
+            // A business account has no person behind it, so there is no one to deduplicate.
+            throw new AuraHandledException('This is a business account, not a person.');
+        }
+        return personContactId;
+    }
+
     @AuraEnabled(cacheable=true)
     public static ContactMatchView findMatchesFor(Id contactId, Integer scanLimit) {
         if (contactId == null) {
-            throw new AuraHandledException('A contact id is required.');
+            throw new AuraHandledException('A record id is required.');
         }
+        contactId = resolveToContactId(contactId);
+
         Integer effectiveLimit = scanLimit == null || scanLimit <= 0
             ? DEFAULT_CANDIDATES
             : Math.min(scanLimit, MAX_CANDIDATES);

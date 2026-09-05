@@ -396,6 +396,35 @@ private class CoalesceResolutionTest {
         }
     }
 
+    /**
+     * The component is placeable on Account record pages so it can reach person accounts, which means
+     * it will also be handed business account ids. There is no person behind a business account, so
+     * that must be refused rather than silently resolving to nothing.
+     */
+    @IsTest
+    private static void businessAccountIsRejected() {
+        Account business = new Account(Name = 'Acme Industrial');
+        insert business;
+
+        try {
+            CoalesceContactResolver.findMatchesFor(business.Id, 500);
+            System.Assert.fail('a business account has no person to deduplicate');
+        } catch (AuraHandledException expected) {
+            System.Assert.isNotNull(expected, 'the rejection should surface to the client');
+        }
+    }
+
+    @IsTest
+    private static void unsupportedObjectIsRejected() {
+        // A record id of some other type must not be silently treated as a contact.
+        try {
+            CoalesceContactResolver.findMatchesFor(UserInfo.getUserId(), 500);
+            System.Assert.fail('a user id is not a contact or person account');
+        } catch (AuraHandledException expected) {
+            System.Assert.isNotNull(expected, 'the rejection should surface to the client');
+        }
+    }
+
     private static CoalesceScorer.Schema testSchema() {
         // Mirrors the Contact schema: weights total 13.5, review 0.70, match 0.87, guard 2 and 35%.
         return new CoalesceScorer.Schema(

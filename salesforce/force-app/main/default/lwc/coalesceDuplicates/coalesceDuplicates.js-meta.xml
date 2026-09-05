@@ -3,7 +3,7 @@
     <apiVersion>62.0</apiVersion>
     <isExposed>true</isExposed>
     <masterLabel>Coalesce Possible Duplicates</masterLabel>
-    <description>Shows which other contacts appear to be the same person as this one, with the per-attribute evidence behind each decision.</description>
+    <description>Shows which other contacts appear to be the same person as this one, with the per-attribute evidence behind each decision. Works on Contact and Person Account record pages.</description>
     <targets>
         <target>lightning__RecordPage</target>
     </targets>
@@ -11,6 +11,7 @@
         <targetConfig targets="lightning__RecordPage">
             <objects>
                 <object>Contact</object>
+                <object>Account</object>
             </objects>
             <property
                 name="scanLimit"
