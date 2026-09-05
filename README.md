@@ -168,15 +168,54 @@ only in `config`, and persistence only in `infrastructure`.
 - **No quality numbers yet.** Until the benchmark harness runs against labelled data, any claim about
   accuracy here would be unfounded.
 
-## Building
+## Seeing it run
 
-Requires JDK 21 and Maven.
+Requires JDK 21 and Maven. There is no REST API yet, but there is a console runner that resolves a
+labelled fixture and scores itself against the ground truth:
+
+```bash
+mvn -q compile exec:java
+```
+
+Measured output on the 95-record, 45-entity patient fixture:
+
+| Metric | With policy | Naive union-find |
+|---|---|---|
+| clusters found (45 true) | 48 | 48 |
+| pairwise precision | 1.000 | 1.000 |
+| pairwise recall | 0.919 | 0.919 |
+| pairwise F1 | **0.958** | 0.958 |
+| wrongly merged pairs | 0 | 0 |
+| entities exactly right | 42 / 45 | 42 / 45 |
+| cluster-level F1 | 0.903 | 0.903 |
+
+**The two columns are identical, and that is a finding rather than an oversight.** `ClusterPolicy`
+recorded 47 allowed merges, 18 redundant links and **zero refusals** on this fixture — it never fired,
+because the data contains no adversarial chain to trigger it. The guard is therefore unproven by this
+run, and the fixture needs a deliberate A–B–C–D chain before the comparison means anything. Fabricating
+one to make the number move would defeat the purpose of measuring.
+
+The review band is doing real work, though: all 12 queued pairs are genuinely the same person, so the
+0.919 recall is not 6 pairs lost but 6 pairs escalated. Two illustrative cases:
+
+```
+1.000  emr:E1012  lab:L2011   agreed on [full_name=1.00, postcode=1.00]
+                              absent: [national_id, dob, phone, address]
+0.842  emr:E1009  lab:L2008   agreed on [postcode=0.00, full_name=1.00,
+                              dob=1.00, phone=1.00, address=1.00]
+```
+
+The first is the thin-evidence guard working as intended — a perfect score resting on a name and a
+postcode is meaningless, so an automatic merge is refused and a human decides. The second is somebody
+who moved house.
+
+Run the tests with:
 
 ```bash
 mvn -B test
 ```
 
-Running the app is not useful yet — the Flyway migration is missing, so startup fails.
+`spring-boot:run` still fails — the Flyway migration is missing, so the context cannot start.
 
 ## Layout
 
