@@ -20,3 +20,8 @@ Thumbs.db
 *.log
 application-local.properties
 application-local.yml
+
+# Salesforce CLI local state for the salesforce/ subproject
+.sfdx/
+.sf/
+salesforce/node_modules/

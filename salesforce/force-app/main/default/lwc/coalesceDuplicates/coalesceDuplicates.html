@@ -1,0 +1,73 @@
+<template>
+    <lightning-card title="Possible Duplicates" icon-name="standard:merge">
+        <lightning-button
+            slot="actions"
+            label="Re-check"
+            icon-name="utility:refresh"
+            onclick={handleRefresh}
+        ></lightning-button>
+
+        <div class="slds-var-p-horizontal_medium">
+            <template lwc:if={loading}>
+                <lightning-spinner alternative-text="Checking for duplicates" size="small"></lightning-spinner>
+            </template>
+
+            <template lwc:if={error}>
+                <div class="slds-text-color_error slds-var-p-vertical_small">{error}</div>
+            </template>
+
+            <template lwc:if={view}>
+                <template lwc:if={isClean}>
+                    <div class="slds-illustration slds-illustration_small slds-var-p-vertical_small">
+                        <p class="slds-text-body_regular">
+                            No likely duplicates found for {view.subjectName}.
+                        </p>
+                    </div>
+                </template>
+
+                <template lwc:if={hasMatches}>
+                    <div class="slds-text-title_bold slds-var-m-bottom_x-small">{matchHeadline}</div>
+                    <template for:each={view.matches} for:item="pair">
+                        <div key={pair.key} class="slds-box slds-box_small slds-var-m-bottom_x-small">
+                            <div class="slds-grid slds-grid_align-spread">
+                                <a href={pair.link} target="_blank" class="slds-text-body_regular">
+                                    {pair.rightName}
+                                </a>
+                                <lightning-badge label={pair.scoreText}></lightning-badge>
+                            </div>
+                            <div class="slds-text-body_small slds-text-color_weak slds-var-m-top_xx-small">
+                                {pair.agreedLabel}
+                            </div>
+                            <div class="slds-text-body_small slds-text-color_weak">
+                                {pair.absentLabel}
+                            </div>
+                        </div>
+                    </template>
+                </template>
+
+                <template lwc:if={hasReviews}>
+                    <div class="slds-text-title_bold slds-var-m-vertical_x-small">
+                        {reviewCount}&nbsp;{reviewHeadline}
+                    </div>
+                    <template for:each={view.reviews} for:item="pair">
+                        <div key={pair.key} class="slds-box slds-box_xx-small slds-var-m-bottom_xx-small">
+                            <div class="slds-grid slds-grid_align-spread">
+                                <a href={pair.link} target="_blank" class="slds-text-body_small">
+                                    {pair.rightName}
+                                </a>
+                                <span class="slds-text-body_small slds-text-color_weak">{pair.scoreText}</span>
+                            </div>
+                            <div class="slds-text-body_small slds-text-color_weak">
+                                {pair.explanation}
+                            </div>
+                        </div>
+                    </template>
+                </template>
+
+                <p class="slds-text-body_small slds-text-color_weak slds-var-m-top_small">
+                    {footnote}
+                </p>
+            </template>
+        </div>
+    </lightning-card>
+</template>
