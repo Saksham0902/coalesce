@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>Coalesce Duplicate Report</masterLabel>
+    <description>Org-wide duplicate contact report. Compares every pair among the contacts scanned and shows each cluster with the evidence behind it. Runs on demand, since all-pairs comparison is quadratic.</description>
+    <targets>
+        <target>lightning__HomePage</target>
+        <target>lightning__AppPage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__HomePage,lightning__AppPage">
+            <property
+                name="scanLimit"
+                type="Integer"
+                default="100"
+                min="2"
+                max="200"
+                label="Contacts to scan"
+                description="All-pairs comparison is quadratic. The Apex CPU budget is exhausted at roughly 130 contacts, beyond which the run stops early and reports partial results."
+            />
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>
