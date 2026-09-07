@@ -8,6 +8,14 @@ shared identifier, decide which of them refer to the same real-world thing.
 > about what does and does not exist, because a README that overstates is worse than one that
 > underclaims.
 
+### Documentation
+
+| | |
+| :--- | :--- |
+| **This file** | What the project is and why it exists |
+| [**`CODE_WALKTHROUGH.md`**](CODE_WALKTHROUGH.md) | Every file explained — the algorithms line by line, a verified run, and a full list of the known defects and gaps |
+| [**`INTERVIEW.md`**](INTERVIEW.md) | The same material framed for explaining out loud |
+
 ---
 
 ## The problem
